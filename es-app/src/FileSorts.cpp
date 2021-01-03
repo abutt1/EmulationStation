@@ -33,7 +33,10 @@ namespace FileSorts
 		FileData::SortType(&comparePublisher, false, "publisher, descending"),
 
 		FileData::SortType(&compareSystem, true, "system, ascending"),
-		FileData::SortType(&compareSystem, false, "system, descending")
+		FileData::SortType(&compareSystem, false, "system, descending"),
+
+		FileData::SortType(&compareNone, true, "none"),
+		FileData::SortType(&compareNone, false, "reverse"),
 	};
 
 	const std::vector<FileData::SortType> SortTypes(typesArr, typesArr + sizeof(typesArr)/sizeof(typesArr[0]));
@@ -114,5 +117,10 @@ namespace FileSorts
 		std::string system1 = Utils::String::toUpper(file1->getSystemName());
 		std::string system2 = Utils::String::toUpper(file2->getSystemName());
 		return system1.compare(system2) < 0;
+	}
+
+	bool compareNone(const FileData* file1, const FileData* file2)
+	{
+		return false;
 	}
 };
