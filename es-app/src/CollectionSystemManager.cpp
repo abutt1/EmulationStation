@@ -24,12 +24,14 @@ CollectionSystemManager* CollectionSystemManager::sInstance = NULL;
 
 CollectionSystemManager::CollectionSystemManager(Window* window) : mWindow(window)
 {
+	std::string customCollectionsSortMode = Settings::getInstance()->getString("DefaultSortModeForCustomCollections");
+
 	CollectionSystemDecl systemDecls[] = {
 		//type                  name            long name            //default sort              // theme folder            // isCustom
 		{ AUTO_ALL_GAMES,       "all",          "all games",         "filename, ascending",      "auto-allgames",           false },
 		{ AUTO_LAST_PLAYED,     "recent",       "last played",       "last played, descending",  "auto-lastplayed",         false },
 		{ AUTO_FAVORITES,       "favorites",    "favorites",         "filename, ascending",      "auto-favorites",          false },
-		{ CUSTOM_COLLECTION,    myCollectionsName,  "collections",    "filename, ascending",      "custom-collections",      true }
+		{ CUSTOM_COLLECTION,    myCollectionsName,  "collections",   customCollectionsSortMode,  "custom-collections",      true }
 	};
 
 	// create a map
