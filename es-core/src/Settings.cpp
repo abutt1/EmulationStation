@@ -139,6 +139,7 @@ void Settings::setDefaults()
 	mStringMap["CollectionSystemsCustom"] = "";
 	mBoolMap["CollectionShowSystemInfo"] = true;
 	mBoolMap["SortAllSystems"] = false;
+	mStringMap["DefaultSortModeForCustomCollections"] = "filename, ascending";
 	mBoolMap["UseCustomCollectionsSystem"] = true;
 
 	mBoolMap["LocalArt"] = false;

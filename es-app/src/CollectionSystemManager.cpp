@@ -24,12 +24,14 @@ CollectionSystemManager* CollectionSystemManager::sInstance = NULL;
 
 CollectionSystemManager::CollectionSystemManager(Window* window) : mWindow(window)
 {
+	std::string customCollectionsSortMode = Settings::getInstance()->getString("DefaultSortModeForCustomCollections");
+
 	CollectionSystemDecl systemDecls[] = {
 		//type                  name            long name            //default sort              // theme folder            // isCustom
 		{ AUTO_ALL_GAMES,       "all",          "all games",         "filename, ascending",      "auto-allgames",           false },
 		{ AUTO_LAST_PLAYED,     "recent",       "last played",       "last played, descending",  "auto-lastplayed",         false },
 		{ AUTO_FAVORITES,       "favorites",    "favorites",         "filename, ascending",      "auto-favorites",          false },
-		{ CUSTOM_COLLECTION,    myCollectionsName,  "collections",    "filename, ascending",      "custom-collections",      true }
+		{ CUSTOM_COLLECTION,    myCollectionsName,  "collections",   customCollectionsSortMode,  "custom-collections",      true }
 	};
 
 	// create a map
@@ -278,7 +280,21 @@ void CollectionSystemManager::updateCollectionSystem(FileData* file, CollectionS
 				ViewController::get()->getGameListView(curSys)->onFileChanged(newGame, FILE_METADATA_CHANGED);
 			}
 		}
-		rootFolder->sort(getSortTypeFromString(mCollectionSystemDeclsIndex[name].defaultSort));
+
+		// determine which sorting method to use.
+		// if the current collection isn't tracked in our mCollectionSystemDeclsIndex object,
+		//   fallback to the default sorting method.
+		CollectionSystemDecl relDecl;
+		if (mCollectionSystemDeclsIndex.find(name) == mCollectionSystemDeclsIndex.end())
+		{
+			relDecl = mCollectionSystemDeclsIndex[myCollectionsName];
+		}
+		else
+		{
+			relDecl = mCollectionSystemDeclsIndex[name];
+		}
+
+		rootFolder->sort(getSortTypeFromString(relDecl.defaultSort));
 		if (name == "recent")
 		{
 			trimCollectionCount(rootFolder, LAST_PLAYED_MAX);
