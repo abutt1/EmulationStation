@@ -280,7 +280,21 @@ void CollectionSystemManager::updateCollectionSystem(FileData* file, CollectionS
 				ViewController::get()->getGameListView(curSys)->onFileChanged(newGame, FILE_METADATA_CHANGED);
 			}
 		}
-		rootFolder->sort(getSortTypeFromString(mCollectionSystemDeclsIndex[name].defaultSort));
+
+		// determine which sorting method to use.
+		// if the current collection isn't tracked in our mCollectionSystemDeclsIndex object,
+		//   fallback to the default sorting method.
+		CollectionSystemDecl relDecl;
+		if (mCollectionSystemDeclsIndex.find(name) == mCollectionSystemDeclsIndex.end())
+		{
+			relDecl = mCollectionSystemDeclsIndex[myCollectionsName];
+		}
+		else
+		{
+			relDecl = mCollectionSystemDeclsIndex[name];
+		}
+
+		rootFolder->sort(getSortTypeFromString(relDecl.defaultSort));
 		if (name == "recent")
 		{
 			trimCollectionCount(rootFolder, LAST_PLAYED_MAX);
