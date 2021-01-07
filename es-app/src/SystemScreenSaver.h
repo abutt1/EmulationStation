@@ -35,6 +35,7 @@ private:
 	void pickRandomVideo(std::string& path);
 	void pickRandomGameListImage(std::string& path);
 	void pickRandomCustomImage(std::string& path);
+	bool pickCustomFile(std::string inDir, std::string fileFilter, bool recursiveSearch, std::string& path);
 
 	void input(InputConfig* config, Input input);
 

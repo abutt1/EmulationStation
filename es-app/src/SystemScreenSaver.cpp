@@ -364,14 +364,16 @@ void SystemScreenSaver::pickRandomGameListImage(std::string& path)
 	}
 }
 
-void SystemScreenSaver::pickRandomCustomImage(std::string& path)
+bool SystemScreenSaver::pickCustomFile(
+	std::string inDir,
+	std::string fileFilter,
+	bool recursiveSearch,
+	std::string& path)
 {
-	std::string imageDir = Settings::getInstance()->getString("SlideshowScreenSaverImageDir");
-	if ((imageDir != "") && (Utils::FileSystem::exists(imageDir)))
+	if ((inDir != "") && (Utils::FileSystem::exists(inDir)))
 	{
-		std::string                   imageFilter = Settings::getInstance()->getString("SlideshowScreenSaverImageFilter");
 		std::vector<std::string>      matchingFiles;
-		Utils::FileSystem::stringList dirContent  = Utils::FileSystem::getDirContent(imageDir, Settings::getInstance()->getBool("SlideshowScreenSaverRecurse"));
+		Utils::FileSystem::stringList dirContent  = Utils::FileSystem::getDirContent(inDir, recursiveSearch);
 
 		for(Utils::FileSystem::stringList::const_iterator it = dirContent.cbegin(); it != dirContent.cend(); ++it)
 		{
@@ -379,8 +381,8 @@ void SystemScreenSaver::pickRandomCustomImage(std::string& path)
 			{
 				// If the image filter is empty, or the file extension is in the filter string,
 				//  add it to the matching files list
-				if ((imageFilter.length() <= 0) ||
-					(imageFilter.find(Utils::FileSystem::getExtension(*it)) != std::string::npos))
+				if ((fileFilter.length() <= 0) ||
+					(fileFilter.find(Utils::FileSystem::getExtension(*it)) != std::string::npos))
 				{
 					matchingFiles.push_back(*it);
 				}
@@ -393,16 +395,29 @@ void SystemScreenSaver::pickRandomCustomImage(std::string& path)
 			// get a random index in the range 0 to fileCount (exclusive)
 			int randomIndex = rand() % fileCount;
 			path = matchingFiles[randomIndex];
+
+			return true;
 		}
 		else
 		{
-			LOG(LogError) << "Slideshow Screensaver - No image files found\n";
+			LOG(LogError) << "Slideshow Screensaver - No screen saver files found\n";
 		}
 	}
 	else
 	{
-		LOG(LogError) << "Slideshow Screensaver - Image directory does not exist: " << imageDir << "\n";
+		LOG(LogError) << "Slideshow Screensaver - screen saver directory does not exist: " << inDir << "\n";
 	}
+
+	return false;
+}
+void SystemScreenSaver::pickRandomCustomImage(std::string& path)
+{
+	pickCustomFile(
+		Settings::getInstance()->getString("SlideshowScreenSaverImageDir"),
+		Settings::getInstance()->getString("SlideshowScreenSaverImageFilter"),
+		Settings::getInstance()->getBool("SlideshowScreenSaverRecurse"),
+		path
+		);
 }
 
 void SystemScreenSaver::update(int deltaTime)
