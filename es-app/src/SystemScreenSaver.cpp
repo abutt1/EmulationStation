@@ -384,6 +384,12 @@ bool SystemScreenSaver::pickCustomFile(
 		{
 			if (Utils::FileSystem::isRegularFile(*it))
 			{
+				if(Utils::FileSystem::getFileName(*it).at(0) == '.')
+				{
+					// ignore any hidden files (that may have been added by mac os for example)
+					continue;
+				}
+
 				// If the image filter is empty, or the file extension is in the filter string,
 				//  add it to the matching files list
 				if ((fileFilter.length() <= 0) ||
