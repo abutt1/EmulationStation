@@ -25,16 +25,18 @@ public:
 
 	virtual FileData* getCurrentGame();
 	virtual void launchGame();
-	inline virtual void resetCounts() { mVideosCounted = false; mImagesCounted = false; };
+	virtual void resetCounts();
 
 private:
 	unsigned long countGameListNodes(const char *nodeName);
 	void countVideos();
 	void countImages();
 	void pickGameListNode(unsigned long index, const char *nodeName, std::string& path);
+	void pickVideo(std::string& path);
 	void pickRandomVideo(std::string& path);
 	void pickRandomGameListImage(std::string& path);
 	void pickRandomCustomImage(std::string& path);
+	bool pickCustomFile(std::string inDir, std::string fileFilter, bool recursiveSearch, std::string searchMode, std::string currentPath, std::string& path);
 
 	void input(InputConfig* config, Input input);
 
@@ -59,6 +61,7 @@ private:
 	FileData*		mCurrentGame;
 	std::string		mGameName;
 	std::string		mSystemName;
+	std::string		mCurrentCustomScreenSaverPath;
 	int 			mSwapTimeout;
 	std::shared_ptr<Sound>	mBackgroundAudio;
 	bool			mStopBackgroundAudio;

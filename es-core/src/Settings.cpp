@@ -111,7 +111,14 @@ void Settings::setDefaults()
 	mBoolMap["SlideshowScreenSaverCustomImageSource"] = false;
 	mStringMap["SlideshowScreenSaverImageDir"] = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow/image";
 	mStringMap["SlideshowScreenSaverImageFilter"] = ".png,.jpg";
+	mStringMap["SlideshowScreenSaverImagePickMode"] = "random";
 	mBoolMap["SlideshowScreenSaverRecurse"] = false;
+
+	mBoolMap["VideoScreenSaverUseCustomSource"] = false;
+	mStringMap["CustomVideoScreenSaverDir"] = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow/video";
+	mStringMap["CustomVideoScreenSaverFileFilter"] = ".mp4,.m4v";
+	mStringMap["CustomVideoScreenSaverPickMode"] = "random";
+	mBoolMap["CustomVideoScreenSaverRecurse"] = false;
 
 	// This setting only applies to raspberry pi but set it for all platforms so
 	// we don't get a warning if we encounter it on a different platform

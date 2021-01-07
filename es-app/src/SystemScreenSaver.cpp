@@ -31,6 +31,7 @@ SystemScreenSaver::SystemScreenSaver(Window* window) :
 	mSystemName(""),
 	mGameName(""),
 	mCurrentGame(NULL),
+	mCurrentCustomScreenSaverPath(""),
 	mStopBackgroundAudio(true)
 {
 	mWindow->setScreenSaver(this);
@@ -75,13 +76,13 @@ void SystemScreenSaver::startScreenSaver()
 
 		// Load a random video
 		std::string path = "";
-		pickRandomVideo(path);
+		pickVideo(path);
 
 		int retry = 200;
-		while(retry > 0 && ((path.empty() || !Utils::FileSystem::exists(path)) || mCurrentGame == NULL))
+		while(retry > 0 && ((path.empty() || !Utils::FileSystem::exists(path)) || (mCurrentGame == NULL && mCurrentCustomScreenSaverPath == "")))
 		{
 			retry--;
-			pickRandomVideo(path);
+			pickVideo(path);
 		}
 
 		if (!path.empty() && Utils::FileSystem::exists(path))
@@ -340,6 +341,27 @@ void SystemScreenSaver::pickGameListNode(unsigned long index, const char *nodeNa
 	}
 }
 
+void SystemScreenSaver::pickVideo(std::string& path)
+{
+	if (Settings::getInstance()->getBool("VideoScreenSaverUseCustomSource"))
+	{
+		bool successfullyPicked = pickCustomFile(
+			Settings::getInstance()->getString("CustomVideoScreenSaverDir"),
+			Settings::getInstance()->getString("CustomVideoScreenSaverFileFilter"),
+			Settings::getInstance()->getBool("CustomVideoScreenSaverRecurse"),
+			Settings::getInstance()->getString("CustomVideoScreenSaverPickMode"),
+			mCurrentCustomScreenSaverPath,
+			path
+			);
+
+		mCurrentCustomScreenSaverPath = successfullyPicked ? path : "";
+	}
+	else
+	{
+		pickRandomVideo(path);
+	}
+}
+
 void SystemScreenSaver::pickRandomVideo(std::string& path)
 {
 	countVideos();
@@ -364,24 +386,40 @@ void SystemScreenSaver::pickRandomGameListImage(std::string& path)
 	}
 }
 
-void SystemScreenSaver::pickRandomCustomImage(std::string& path)
+bool SystemScreenSaver::pickCustomFile(
+	std::string inDir,
+	std::string fileFilter,
+	bool recursiveSearch,
+	std::string searchMode,
+	std::string currentPath,
+	std::string& path)
 {
-	std::string imageDir = Settings::getInstance()->getString("SlideshowScreenSaverImageDir");
-	if ((imageDir != "") && (Utils::FileSystem::exists(imageDir)))
+	if ((inDir != "") && (Utils::FileSystem::exists(inDir)))
 	{
-		std::string                   imageFilter = Settings::getInstance()->getString("SlideshowScreenSaverImageFilter");
 		std::vector<std::string>      matchingFiles;
-		Utils::FileSystem::stringList dirContent  = Utils::FileSystem::getDirContent(imageDir, Settings::getInstance()->getBool("SlideshowScreenSaverRecurse"));
+		Utils::FileSystem::stringList dirContent  = Utils::FileSystem::getDirContent(inDir, recursiveSearch);
+
+		int curIndex = -1;
 
 		for(Utils::FileSystem::stringList::const_iterator it = dirContent.cbegin(); it != dirContent.cend(); ++it)
 		{
 			if (Utils::FileSystem::isRegularFile(*it))
 			{
+				if(Utils::FileSystem::getFileName(*it).at(0) == '.')
+				{
+					// ignore any hidden files (that may have been added by mac os for example)
+					continue;
+				}
+
 				// If the image filter is empty, or the file extension is in the filter string,
 				//  add it to the matching files list
-				if ((imageFilter.length() <= 0) ||
-					(imageFilter.find(Utils::FileSystem::getExtension(*it)) != std::string::npos))
+				if ((fileFilter.length() <= 0) ||
+					(fileFilter.find(Utils::FileSystem::getExtension(*it)) != std::string::npos))
 				{
+					if((currentPath != "") && (*it == currentPath)) {
+						curIndex = (int)matchingFiles.size();
+					}
+
 					matchingFiles.push_back(*it);
 				}
 			}
@@ -390,19 +428,56 @@ void SystemScreenSaver::pickRandomCustomImage(std::string& path)
 		int fileCount = (int)matchingFiles.size();
 		if (fileCount > 0)
 		{
-			// get a random index in the range 0 to fileCount (exclusive)
-			int randomIndex = rand() % fileCount;
-			path = matchingFiles[randomIndex];
+			int nextIndex;
+
+			if (searchMode == "increment") {
+				nextIndex = curIndex + 1;
+				if(nextIndex >= fileCount) {
+					nextIndex = 0;
+				}
+			} else {
+				// get a random index in the range 0 to fileCount (exclusive)
+				int randomIndex;
+				if(curIndex != -1) {
+					// exclude current index
+					randomIndex = rand() % (fileCount - 1);
+					if (randomIndex == curIndex) {
+						randomIndex = fileCount - 1;
+					}
+				} else {
+					randomIndex = rand() % fileCount;
+				}
+				nextIndex = randomIndex;
+			}
+
+			path = matchingFiles[nextIndex];
+
+			return true;
 		}
 		else
 		{
-			LOG(LogError) << "Slideshow Screensaver - No image files found\n";
+			LOG(LogError) << "Slideshow Screensaver - No screen saver files found\n";
 		}
 	}
 	else
 	{
-		LOG(LogError) << "Slideshow Screensaver - Image directory does not exist: " << imageDir << "\n";
+		LOG(LogError) << "Slideshow Screensaver - screen saver directory does not exist: " << inDir << "\n";
 	}
+
+	return false;
+}
+void SystemScreenSaver::pickRandomCustomImage(std::string& path)
+{
+	bool successfullyPicked = pickCustomFile(
+		Settings::getInstance()->getString("SlideshowScreenSaverImageDir"),
+		Settings::getInstance()->getString("SlideshowScreenSaverImageFilter"),
+		Settings::getInstance()->getBool("SlideshowScreenSaverRecurse"),
+		Settings::getInstance()->getString("SlideshowScreenSaverImagePickMode"),
+		mCurrentCustomScreenSaverPath,
+		path
+		);
+
+	mCurrentCustomScreenSaverPath = successfullyPicked ? path : "";
 }
 
 void SystemScreenSaver::update(int deltaTime)
@@ -467,5 +542,18 @@ void SystemScreenSaver::launchGame()
 		IGameListView* view = ViewController::get()->getGameListView(mCurrentGame->getSystem()).get();
 		view->setCursor(mCurrentGame);
 		view->launch(mCurrentGame);
+	}
+}
+
+void SystemScreenSaver::resetCounts()
+{
+	mVideosCounted = false;
+	mImagesCounted = false;
+
+	// TODO: load this from settings.
+	bool shouldResetPathAfterStop = false;
+	if(shouldResetPathAfterStop) {
+		// we are no longer running screensaver.
+		mCurrentCustomScreenSaverPath = "";
 	}
 }

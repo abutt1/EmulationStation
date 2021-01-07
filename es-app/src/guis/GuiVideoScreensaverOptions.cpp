@@ -8,6 +8,8 @@
 
 GuiVideoScreensaverOptions::GuiVideoScreensaverOptions(Window* window, const char* title) : GuiScreensaverOptions(window, title)
 {
+	ComponentListRow row;
+
 	// timeout to swap videos
 	auto swap = std::make_shared<SliderComponent>(mWindow, 10.f, 1000.f, 1.f, "s");
 	swap->setValue((float)(Settings::getInstance()->getInt("ScreenSaverSwapVideoTimeout") / (1000)));
@@ -30,6 +32,44 @@ GuiVideoScreensaverOptions::GuiVideoScreensaverOptions(Window* window, const cha
 	addSaveFunc([ss_omx, this] { Settings::getInstance()->setBool("ScreenSaverOmxPlayer", ss_omx->getState()); });
 #endif
 
+	// video source
+	auto scv_custom_source = std::make_shared<SwitchComponent>(mWindow);
+	scv_custom_source->setState(Settings::getInstance()->getBool("VideoScreenSaverUseCustomSource"));
+	addWithLabel("USE CUSTOM VIDEOS", scv_custom_source);
+	addSaveFunc([scv_custom_source] { Settings::getInstance()->setBool("VideoScreenSaverUseCustomSource", scv_custom_source->getState()); });
+
+	// custom video directory
+	auto scv_video_dir = std::make_shared<TextComponent>(mWindow, "", Font::get(FONT_SIZE_SMALL), 0x777777FF);
+	addEditableTextComponent(row, "CUSTOM VIDEO DIR", scv_video_dir, Settings::getInstance()->getString("CustomVideoScreenSaverDir"));
+	addSaveFunc([scv_video_dir] {
+		Settings::getInstance()->setString("CustomVideoScreenSaverDir", scv_video_dir->getValue());
+	});
+
+	// recurse custom video directory
+	auto scv_recurse = std::make_shared<SwitchComponent>(mWindow);
+	scv_recurse->setState(Settings::getInstance()->getBool("CustomVideoScreenSaverRecurse"));
+	addWithLabel("CUSTOM VIDEO DIR RECURSIVE", scv_recurse);
+	addSaveFunc([scv_recurse] {
+		Settings::getInstance()->setBool("CustomVideoScreenSaverRecurse", scv_recurse->getState());
+	});
+
+	// custom video filter
+	auto scv_video_filter = std::make_shared<TextComponent>(mWindow, "", Font::get(FONT_SIZE_SMALL), 0x777777FF);
+	addEditableTextComponent(row, "CUSTOM VIDEO FILTER", scv_video_filter, Settings::getInstance()->getString("CustomVideoScreenSaverFileFilter"));
+	addSaveFunc([scv_video_filter] {
+		Settings::getInstance()->setString("CustomVideoScreenSaverFileFilter", scv_video_filter->getValue());
+	});
+
+	// custom video pick mode
+	auto scv_pick_mode = std::make_shared< OptionListComponent<std::string> >(mWindow, "VIDEO PICK MODE", false);
+	std::vector<std::string> pick_type;
+	pick_type.push_back("random");
+	pick_type.push_back("increment");
+	for(auto it = pick_type.cbegin(); it != pick_type.cend(); it++)
+		scv_pick_mode->add(*it, *it, Settings::getInstance()->getString("CustomVideoScreenSaverPickMode") == *it);
+	addWithLabel("CUSTOM VIDEO SELECTION MODE", scv_pick_mode);
+	addSaveFunc([scv_pick_mode, this] { Settings::getInstance()->setString("CustomVideoScreenSaverPickMode", scv_pick_mode->getSelected()); });
+
 	// Render Video Game Name as subtitles
 	auto ss_info = std::make_shared< OptionListComponent<std::string> >(mWindow, "SHOW GAME INFO", false);
 	std::vector<std::string> info_type;
@@ -42,7 +82,6 @@ GuiVideoScreensaverOptions::GuiVideoScreensaverOptions(Window* window, const cha
 	addSaveFunc([ss_info, this] { Settings::getInstance()->setString("ScreenSaverGameInfo", ss_info->getSelected()); });
 
 #ifdef _RPI_
-	ComponentListRow row;
 
 	// Set subtitle position
 	auto ss_omx_subs_align = std::make_shared< OptionListComponent<std::string> >(mWindow, "GAME INFO ALIGNMENT", false);
