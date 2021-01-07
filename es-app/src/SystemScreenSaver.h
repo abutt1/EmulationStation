@@ -25,7 +25,7 @@ public:
 
 	virtual FileData* getCurrentGame();
 	virtual void launchGame();
-	inline virtual void resetCounts() { mVideosCounted = false; mImagesCounted = false; };
+	virtual void resetCounts();
 
 private:
 	unsigned long countGameListNodes(const char *nodeName);

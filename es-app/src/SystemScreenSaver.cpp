@@ -517,3 +517,16 @@ void SystemScreenSaver::launchGame()
 		view->launch(mCurrentGame);
 	}
 }
+
+void SystemScreenSaver::resetCounts()
+{
+	mVideosCounted = false;
+	mImagesCounted = false;
+
+	// TODO: load this from settings.
+	bool shouldResetPathAfterStop = false;
+	if(shouldResetPathAfterStop) {
+		// we are no longer running screensaver.
+		mCurrentCustomScreenSaverPath = "";
+	}
+}
