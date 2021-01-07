@@ -76,13 +76,13 @@ void SystemScreenSaver::startScreenSaver()
 
 		// Load a random video
 		std::string path = "";
-		pickRandomVideo(path);
+		pickVideo(path);
 
 		int retry = 200;
-		while(retry > 0 && ((path.empty() || !Utils::FileSystem::exists(path)) || mCurrentGame == NULL))
+		while(retry > 0 && ((path.empty() || !Utils::FileSystem::exists(path)) || (mCurrentGame == NULL && mCurrentCustomScreenSaverPath == "")))
 		{
 			retry--;
-			pickRandomVideo(path);
+			pickVideo(path);
 		}
 
 		if (!path.empty() && Utils::FileSystem::exists(path))
@@ -338,6 +338,27 @@ void SystemScreenSaver::pickGameListNode(unsigned long index, const char *nodeNa
 				}
 			}
 		}
+	}
+}
+
+void SystemScreenSaver::pickVideo(std::string& path)
+{
+	if (Settings::getInstance()->getBool("VideoScreenSaverUseCustomSource"))
+	{
+		bool successfullyPicked = pickCustomFile(
+			Settings::getInstance()->getString("CustomVideoScreenSaverDir"),
+			Settings::getInstance()->getString("CustomVideoScreenSaverFileFilter"),
+			Settings::getInstance()->getBool("CustomVideoScreenSaverRecurse"),
+			Settings::getInstance()->getString("CustomVideoScreenSaverPickMode"),
+			mCurrentCustomScreenSaverPath,
+			path
+			);
+
+		mCurrentCustomScreenSaverPath = successfullyPicked ? path : "";
+	}
+	else
+	{
+		pickRandomVideo(path);
 	}
 }
 

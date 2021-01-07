@@ -32,6 +32,7 @@ private:
 	void countVideos();
 	void countImages();
 	void pickGameListNode(unsigned long index, const char *nodeName, std::string& path);
+	void pickVideo(std::string& path);
 	void pickRandomVideo(std::string& path);
 	void pickRandomGameListImage(std::string& path);
 	void pickRandomCustomImage(std::string& path);
