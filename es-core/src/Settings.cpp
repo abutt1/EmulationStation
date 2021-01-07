@@ -111,6 +111,7 @@ void Settings::setDefaults()
 	mBoolMap["SlideshowScreenSaverCustomImageSource"] = false;
 	mStringMap["SlideshowScreenSaverImageDir"] = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow/image";
 	mStringMap["SlideshowScreenSaverImageFilter"] = ".png,.jpg";
+	mStringMap["SlideshowScreenSaverImagePickMode"] = "random";
 	mBoolMap["SlideshowScreenSaverRecurse"] = false;
 
 	// This setting only applies to raspberry pi but set it for all platforms so

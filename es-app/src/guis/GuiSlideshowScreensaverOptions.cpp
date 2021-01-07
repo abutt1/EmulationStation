@@ -1,5 +1,6 @@
 #include "guis/GuiSlideshowScreensaverOptions.h"
 
+#include "components/OptionListComponent.h"
 #include "components/SliderComponent.h"
 #include "components/SwitchComponent.h"
 #include "guis/GuiTextEditPopup.h"
@@ -63,6 +64,16 @@ GuiSlideshowScreensaverOptions::GuiSlideshowScreensaverOptions(Window* window, c
 	addSaveFunc([sss_image_filter] {
 		Settings::getInstance()->setString("SlideshowScreenSaverImageFilter", sss_image_filter->getValue());
 	});
+
+	// custom image pick mode
+	auto sss_pick_mode = std::make_shared< OptionListComponent<std::string> >(mWindow, "IMAGE PICK MODE", false);
+	std::vector<std::string> pick_type;
+	pick_type.push_back("random");
+	pick_type.push_back("increment");
+	for(auto it = pick_type.cbegin(); it != pick_type.cend(); it++)
+		sss_pick_mode->add(*it, *it, Settings::getInstance()->getString("SlideshowScreenSaverImagePickMode") == *it);
+	addWithLabel(row, "CUSTOM IMAGE SELECTION MODE", sss_pick_mode);
+	addSaveFunc([sss_pick_mode, this] { Settings::getInstance()->setString("SlideshowScreenSaverImagePickMode", sss_pick_mode->getSelected()); });
 }
 
 GuiSlideshowScreensaverOptions::~GuiSlideshowScreensaverOptions()

@@ -35,7 +35,7 @@ private:
 	void pickRandomVideo(std::string& path);
 	void pickRandomGameListImage(std::string& path);
 	void pickRandomCustomImage(std::string& path);
-	bool pickCustomFile(std::string inDir, std::string fileFilter, bool recursiveSearch, std::string& path);
+	bool pickCustomFile(std::string inDir, std::string fileFilter, bool recursiveSearch, std::string searchMode, std::string currentPath, std::string& path);
 
 	void input(InputConfig* config, Input input);
 
@@ -60,6 +60,7 @@ private:
 	FileData*		mCurrentGame;
 	std::string		mGameName;
 	std::string		mSystemName;
+	std::string		mCurrentCustomScreenSaverPath;
 	int 			mSwapTimeout;
 	std::shared_ptr<Sound>	mBackgroundAudio;
 	bool			mStopBackgroundAudio;
